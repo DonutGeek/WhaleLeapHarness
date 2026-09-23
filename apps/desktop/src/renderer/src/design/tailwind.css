@@ -1,0 +1,26 @@
+/* Tailwind CSS v4 的引入文件（设计层的一个"零件"，不是总入口）。
+   v4 是 CSS 优先配置，@import 这一行就引入了 Tailwind 的全部样式和引擎。
+   它由同目录的 index.css 统一引入——main.ts 只引 index.css 那一个入口 */
+@import 'tailwindcss';
+
+/* 无衬线：系统 UI + 中文苹方/雅黑；等宽：JetBrains Mono（Fontsource 本地打包） */
+@theme {
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei UI',
+    'Microsoft YaHei', 'Noto Sans SC', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --animate-typing-dot: typing-dot 1s ease-in-out infinite;
+}
+
+@keyframes typing-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}

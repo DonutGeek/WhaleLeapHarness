@@ -1,0 +1,8 @@
+/* antdv-next 覆盖入口。
+   主题 token 由 AppProvider 的 ConfigProvider 统一下发。
+   这里只放全站都要用的覆盖。某个页面或组件自己的样式写在组件里，不要放进来。 */
+
+/* 子菜单标题是 flex，但没有垂直居中，图标会贴在文字上沿。嵌套菜单单独挂到 body，所以写在全局。 */
+.ant-dropdown-menu-submenu-title {
+  @apply items-center;
+}

@@ -2,6 +2,7 @@
 
 # Dependencies
 node_modules
+.pnpm-store
 .pnp
 .pnp.js
 
@@ -22,7 +23,6 @@ coverage
 .vercel
 
 # Build Outputs
-.next/
 out/
 build
 dist

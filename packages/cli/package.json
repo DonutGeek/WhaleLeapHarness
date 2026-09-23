@@ -1,0 +1,26 @@
+{
+  "name": "@repo/cli",
+  "version": "0.1.0",
+  "private": true,
+  "bin": {
+    "whale-agent": "./dist/cli.js"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "agent": "tsx src/cli.ts run",
+    "build": "tsc -p tsconfig.json",
+    "lint": "oxlint .",
+    "check-types": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.1",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}

@@ -5,16 +5,22 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "check-types": "turbo run check-types"
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
+    "check-types": "turbo run check-types",
+    "dev:desktop": "pnpm --filter desktop dev",
+    "dev:server": "pnpm --filter server dev",
+    "prepare": "husky"
   },
   "devDependencies": {
-    "prettier": "3.9.6",
+    "husky": "^9.1.7",
+    "oxfmt": "^0.70.0",
+    "oxlint": "^1.33.0",
     "turbo": "^2.11.3",
     "typescript": "7.0.2"
   },
-  "packageManager": "pnpm@11.25.0",
   "engines": {
     "node": ">=24"
-  }
+  },
+  "packageManager": "pnpm@11.25.0"
 }

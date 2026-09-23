@@ -1,0 +1,15 @@
+{
+  "appName": "gito",
+  "slogan": "本地 Git 工作台",
+  "openRepo": "打开仓库",
+  "noRepo": "未选择仓库",
+  "refresh": "刷新状态",
+  "workspace": "工作区",
+  "commit": "提交",
+  "pull": "拉取",
+  "push": "推送",
+  "selectAll": "全选",
+  "stageSelected": "暂存所选",
+  "stageAll": "暂存全部",
+  "emptyWorkspace": "工作区是干净的，没有待提交的变更。"
+}

@@ -1,0 +1,64 @@
+/* ============================================================================
+   design/index.css —— 设计层样式的「总入口」
+   main.ts 里只 import 这一个文件，其余样式都由下面的 @import 按顺序串起来
+   （对应 vben 模板的 src/design/index.less；我们不用 less 编译器，改用纯 CSS）
+
+   @import 的顺序就是"层叠优先级"的顺序：越靠前的越先加载，越靠后的越容易覆盖前面的。
+   所以顺序是：引擎(tailwind) → 变量(theme) → 基础(public) → 组件库覆盖(antdv) → 动画(transition)
+   ----------------------------------------------------------------------------
+   注意：CSS 规范要求 @import 必须写在所有其它规则之前，所以这里的引入全部集中在文件顶部
+   ============================================================================ */
+
+/* 1. Tailwind 引擎：提供原子化工具类（flex、p-4、text-sm 这类），必须先引入 */
+@import './tailwind.css';
+
+/* 2. 主题：把颜色、边框等抽成 CSS 变量（--text-color 这种），方便以后做亮/暗切换 */
+@import './theme/index.css';
+
+/* 3. 公共基础样式：#app 撑满全屏、滚动条美化等"每个页面都吃到"的规则 */
+@import './public/index.css';
+
+/* 4. 组件库覆盖预留层：主题走 ConfigProvider，这里只放必要的布局补丁 */
+@import './antdv/index.css';
+
+/* 5. 过渡动画：配合 Vue <Transition> 使用的类名（fade、slide-up…），最后引入 */
+@import './transition/index.css';
+
+/* ----------------------------------------------------------------------------
+   以下是全局基础规则（对应 vben 的 design/index.less 主体）
+   ---------------------------------------------------------------------------- */
+
+/* html 和 body 撑满整个窗口，且禁止出现页面级滚动条。
+   桌面应用里滚动条应该出现在"内部区域"（比如内容区），而不是整个窗口上 */
+html,
+body {
+  @apply h-full w-full overflow-hidden;
+}
+
+/* 桌面工具的非对话界面不允许拖拽选中文本；对话气泡保留复制能力。 */
+#app,
+#app * {
+  @apply select-none;
+}
+
+#app .agent-bubble,
+#app .agent-bubble * {
+  @apply select-text;
+}
+
+/* 去掉一些元素聚焦时的默认外发光/虚线框（鼠标点击后不再出现难看的轮廓）。
+   注意：这里不是"删掉可访问性"，键盘 Tab 聚焦时 Chrome 等浏览器仍会画自己的焦点环 */
+a:focus,
+a:active,
+button,
+div,
+svg,
+span {
+  @apply outline-none;
+}
+
+/* 清掉 ul 的默认样式：项目里大量用 ul > li 做菜单/列表，
+   默认的小圆点和左缩进会让布局很难对齐 */
+ul {
+  @apply m-0 list-none p-0;
+}

@@ -1,0 +1,36 @@
+/* ============================================================================
+   public/index.css —— 公共基础样式（每个页面都会吃到）
+   对应 vben 模板的 design/public.less
+   ============================================================================ */
+
+/* #app 是 index.html 里那个根容器（Vue 挂载点）。
+   撑满整个窗口，这样最外层布局才能用 height: 100% 铺满 */
+#app {
+  @apply h-full w-full;
+}
+
+/* 外观里的文字大小：改根字号，Tailwind 的 rem 会跟着缩放 */
+html[data-font-size='small'] {
+  font-size: 14px;
+}
+
+html[data-font-size='large'] {
+  font-size: 18px;
+}
+
+/* Overlay 标题栏没有系统拖拽条，标了这个属性的区域按住即可移动窗口 */
+[data-window-drag-region] {
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+
+/* 按钮必须显式退出拖拽，否则点不到 */
+.no-drag,
+[data-window-drag-region] button,
+[data-window-drag-region] a,
+[data-window-drag-region] input,
+[data-window-drag-region] textarea,
+[data-window-drag-region] [role='button'] {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}

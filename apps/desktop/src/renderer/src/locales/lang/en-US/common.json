@@ -1,0 +1,15 @@
+{
+  "appName": "gito",
+  "slogan": "Local Git workbench",
+  "openRepo": "Open repository",
+  "noRepo": "No repository selected",
+  "refresh": "Refresh status",
+  "workspace": "Workspace",
+  "commit": "Commit",
+  "pull": "Pull",
+  "push": "Push",
+  "selectAll": "Select all",
+  "stageSelected": "Stage selected",
+  "stageAll": "Stage all",
+  "emptyWorkspace": "The workspace is clean, nothing to commit."
+}
