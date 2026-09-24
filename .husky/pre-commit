@@ -1,2 +1,9 @@
+# 钩子使用 .nvmrc 里的 Node，不沿用 Git 客户端当前的 Node
+NODE_VERSION="$(tr -d '[:space:]' < .nvmrc)"
+NODE_BIN="${NVM_DIR:-$HOME/.nvm}/versions/node/v${NODE_VERSION}/bin"
+if [ -x "$NODE_BIN/node" ]; then
+  export PATH="$NODE_BIN:$PATH"
+fi
+
 pnpm lint
 pnpm format:check
