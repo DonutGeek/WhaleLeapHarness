@@ -130,12 +130,6 @@ const action = computed<'send' | 'stop' | 'start'>(() => {
   return 'send'
 })
 
-const actionLabel = computed(() => {
-  if (action.value === 'stop') return '停止生成'
-  if (action.value === 'start') return '继续生成'
-  return '发送'
-})
-
 const sendDisabled = computed(() => action.value === 'send' && (props.disabled || isEmpty.value))
 
 const editor = useEditor({
@@ -231,83 +225,96 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div
-    class="agent-sender flex flex-col overflow-hidden rounded-(--ant-border-radius-lg) border border-solid border-(--ant-color-border) bg-(--ant-color-bg-container) transition-[border-color,box-shadow] duration-200 ease-(--ant-motion-ease-in-out) hover:border-(--ant-color-primary-hover) focus-within:border-(--ant-color-primary) focus-within:shadow-[0_0_0_2px_var(--ant-color-primary-bg)]"
-  >
+  <div class="flex flex-col">
     <div
-      v-if="showContext"
-      class="flex h-10 items-center gap-4 px-4 text-sm text-(--ant-color-text-secondary)"
+      class="agent-sender flex flex-col overflow-hidden rounded-(--ant-border-radius-lg) border border-solid border-(--ant-color-border) bg-(--ant-color-bg-container) transition-[border-color,box-shadow] duration-200 ease-(--ant-motion-ease-in-out) hover:border-(--ant-color-primary-hover) focus-within:border-(--ant-color-primary) focus-within:shadow-[0_0_0_2px_var(--ant-color-primary-bg)]"
     >
-      <button class="inline-flex items-center gap-1.5 border-0 bg-transparent p-0" type="button">
-        <Icon icon="folder-git-2" :size="16" />{{ project }}<Icon icon="chevron-down" :size="14" />
-      </button>
-      <button class="inline-flex items-center gap-1.5 border-0 bg-transparent p-0" type="button">
-        <Icon icon="git-branch" :size="15" />{{ branch }}<Icon icon="chevron-down" :size="14" />
-      </button>
-    </div>
-
-    <div class="relative">
-      <EditorContent :editor="editor" />
-    </div>
-
-    <div class="flex h-14 items-center gap-1.5 px-4">
-      <Tooltip title="添加上下文">
-        <Button>
-          <template #icon><Icon icon="plus" :size="16" /></template>
-        </Button>
-      </Tooltip>
-      <Dropdown
-        :trigger="['click']"
-        placement="topLeft"
-        :styles="{
-          item: { height: 'auto', whiteSpace: 'normal', alignItems: 'center' }
-        }"
-        :menu="{
-          items: accessMenuItems,
-          selectable: false,
-          onClick: onAccessClick
-        }"
+      <div
+        v-if="showContext"
+        class="flex h-10 items-center gap-4 px-4 text-sm text-(--ant-color-text-secondary)"
       >
-        <span class="inline-flex">
+        <button class="inline-flex items-center gap-1.5 border-0 bg-transparent p-0" type="button">
+          <Icon icon="folder-git-2" :size="16" />{{ project
+          }}<Icon icon="chevron-down" :size="14" />
+        </button>
+        <button class="inline-flex items-center gap-1.5 border-0 bg-transparent p-0" type="button">
+          <Icon icon="git-branch" :size="15" />{{ branch }}<Icon icon="chevron-down" :size="14" />
+        </button>
+      </div>
+
+      <div class="relative">
+        <EditorContent :editor="editor" />
+      </div>
+
+      <div class="flex h-14 items-center gap-1.5 px-4">
+        <Tooltip title="添加上下文">
           <Button>
-            <template #icon>
-              <Icon :icon="currentAccess.icon" :size="16" />
-            </template>
-            {{ currentAccess.title }}
+            <template #icon><Icon icon="plus" :size="16" /></template>
           </Button>
-        </span>
-      </Dropdown>
-      <span class="ml-auto"></span>
-      <Dropdown
-        :trigger="['click']"
-        placement="topRight"
-        :menu="{
-          items: modelMenuItems,
-          selectable: false,
-          onClick: onModelClick
-        }"
-      >
-        <span class="inline-flex">
-          <Button icon-placement="end">
-            <template #icon>
-              <Icon icon="chevron-down" :size="16" />
-            </template>
-            {{ model }}
-          </Button>
-        </span>
-      </Dropdown>
-      <Button
-        type="primary"
-        :data-action="action"
-        :aria-label="actionLabel"
-        :disabled="sendDisabled"
-        @click="submit"
-      >
-        <template #icon>
-          <Icon v-if="action === 'stop'" icon="square" :size="16" fill="currentColor" />
-          <Icon v-else icon="arrow-up" :size="16" />
-        </template>
-      </Button>
+        </Tooltip>
+        <Dropdown
+          :trigger="['click']"
+          placement="topLeft"
+          :styles="{
+            item: {
+              height: 'auto',
+              whiteSpace: 'normal',
+              alignItems: 'center'
+            }
+          }"
+          :menu="{
+            items: accessMenuItems,
+            selectable: false,
+            onClick: onAccessClick
+          }"
+        >
+          <span class="inline-flex">
+            <Button>
+              <template #icon>
+                <Icon :icon="currentAccess.icon" :size="16" />
+              </template>
+              {{ currentAccess.title }}
+            </Button>
+          </span>
+        </Dropdown>
+        <span class="ml-auto"></span>
+        <Dropdown
+          :trigger="['click']"
+          placement="topRight"
+          :menu="{
+            items: modelMenuItems,
+            selectable: false,
+            onClick: onModelClick
+          }"
+        >
+          <span class="inline-flex">
+            <Button icon-placement="end">
+              <template #icon>
+                <Icon icon="chevron-down" :size="16" />
+              </template>
+              {{ model }}
+            </Button>
+          </span>
+        </Dropdown>
+        <Button type="primary" :data-action="action" :disabled="sendDisabled" @click="submit">
+          <template #icon>
+            <Icon v-if="action === 'stop'" icon="square" :size="16" fill="currentColor" />
+            <Icon v-else icon="arrow-up" :size="16" />
+          </template>
+        </Button>
+      </div>
+    </div>
+    <div
+      class="flex items-center gap-2 px-1 py-1 text-sm text-(--ant-color-text-tertiary) bg-(--ant-color-bg-container)"
+    >
+      <span class="inline-flex items-center gap-1.5">
+        <Icon icon="folder" :size="16" />
+        <span>{{ project }}</span>
+      </span>
+      <span class="inline-flex items-center gap-1.5">
+        <Icon icon="monitor" :size="16" />
+        <span>本地</span>
+      </span>
     </div>
   </div>
 </template>

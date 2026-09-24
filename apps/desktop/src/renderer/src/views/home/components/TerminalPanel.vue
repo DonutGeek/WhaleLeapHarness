@@ -1,6 +1,15 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, type Ref, watch } from 'vue'
-import { Button, Tag, Tooltip } from 'antdv-next'
+import {
+  computed,
+  defineComponent,
+  h,
+  onBeforeUnmount,
+  ref,
+  watch,
+  type PropType,
+  type Ref
+} from 'vue'
+import { Button, CheckableTagGroup, Splitter, SplitterPanel, Tooltip } from 'antdv-next'
 import { Icon } from '@/components/Icon'
 import { Terminal } from '@/components/Terminal'
 
@@ -14,10 +23,22 @@ export interface TerminalPanelExpose {
   visible: Ref<boolean>
 }
 
-type SplitDirection = 'single' | 'vertical' | 'horizontal'
+/** horizontal：左右并排；vertical：上下堆叠。和 antdv-next Splitter 的 orientation 一致 */
+type SplitOrientation = 'horizontal' | 'vertical'
 
-const PANE_MIN_RATIO = 0.2
-const PANE_MAX_RATIO = 0.8
+interface TerminalLeaf {
+  kind: 'leaf'
+  sessionId: string
+}
+
+interface SplitBranch {
+  kind: 'split'
+  id: string
+  orientation: SplitOrientation
+  children: LayoutNode[]
+}
+
+type LayoutNode = TerminalLeaf | SplitBranch
 
 interface TerminalSession {
   id: string
@@ -26,6 +47,7 @@ interface TerminalSession {
 
 let nextSessionId = 1
 let nextDisplayNumber = 1
+let nextSplitId = 1
 
 function allocateSession(): TerminalSession {
   return {
@@ -34,18 +56,15 @@ function allocateSession(): TerminalSession {
   }
 }
 
+function leaf(sessionId: string): TerminalLeaf {
+  return { kind: 'leaf', sessionId }
+}
+
 const visible = ref(false)
 const initialSession = allocateSession()
 const sessions = ref<TerminalSession[]>([initialSession])
-const paneSessionIds = ref([initialSession.id])
-const splitDirection = ref<SplitDirection>('single')
-const activePane = ref(0)
-const activeSessionId = computed(
-  () => paneSessionIds.value[activePane.value] ?? paneSessionIds.value[0] ?? ''
-)
-const splitRatio = ref(0.5)
-const splitResizing = ref(false)
-const hoveredSessionId = ref<string>()
+const layout = ref<LayoutNode>(leaf(initialSession.id))
+const activeSessionId = ref(initialSession.id)
 
 function createSession() {
   const session = allocateSession()
@@ -53,36 +72,132 @@ function createSession() {
   return session.id
 }
 
+function nodeAt(node: LayoutNode, path: number[]): LayoutNode | null {
+  let current: LayoutNode = node
+  for (const index of path) {
+    if (current.kind !== 'split') return null
+    const child = current.children[index]
+    if (!child) return null
+    current = child
+  }
+  return current
+}
+
+function findPath(node: LayoutNode, sessionId: string, path: number[] = []): number[] | null {
+  if (node.kind === 'leaf') return node.sessionId === sessionId ? path : null
+  for (let index = 0; index < node.children.length; index += 1) {
+    const found = findPath(node.children[index], sessionId, [...path, index])
+    if (found) return found
+  }
+  return null
+}
+
+function replaceAt(node: LayoutNode, path: number[], next: LayoutNode): LayoutNode {
+  if (path.length === 0) return next
+  if (node.kind !== 'split') return node
+  const [index, ...rest] = path
+  const children = node.children.slice()
+  const child = children[index]
+  if (!child) return node
+  children[index] = replaceAt(child, rest, next)
+  return { ...node, children }
+}
+
+function firstSessionId(node: LayoutNode): string {
+  return node.kind === 'leaf' ? node.sessionId : firstSessionId(node.children[0])
+}
+
+function collectSessionIds(node: LayoutNode, ids: string[] = []) {
+  if (node.kind === 'leaf') {
+    ids.push(node.sessionId)
+    return ids
+  }
+  node.children.forEach((child) => collectSessionIds(child, ids))
+  return ids
+}
+
 /** 关掉面板后丢掉全部分屏和会话，下次打开从「终端 1」重新开始 */
 function resetPanelState() {
   nextDisplayNumber = 1
   const session = allocateSession()
   sessions.value = [session]
-  paneSessionIds.value = [session.id]
-  splitDirection.value = 'single'
-  activePane.value = 0
-  splitRatio.value = 0.5
-  hoveredSessionId.value = undefined
+  layout.value = leaf(session.id)
+  activeSessionId.value = session.id
 }
 
 function addTerminal() {
   const id = createSession()
-  paneSessionIds.value[activePane.value] = id
+  const path = findPath(layout.value, activeSessionId.value) ?? []
+  const current = nodeAt(layout.value, path)
+  if (current?.kind === 'leaf') layout.value = replaceAt(layout.value, path, leaf(id))
+  activeSessionId.value = id
 }
 
-function split(direction: Exclude<SplitDirection, 'single'>) {
-  if (splitDirection.value === 'single') {
-    paneSessionIds.value = [paneSessionIds.value[0], createSession()]
+/** 只切开当前选中的那一块；父级已经是同一方向时并进同一组分屏 */
+function split(orientation: SplitOrientation) {
+  const path = findPath(layout.value, activeSessionId.value)
+  if (!path) return
+  const current = nodeAt(layout.value, path)
+  if (current?.kind !== 'leaf') return
+
+  const created = leaf(createSession())
+  const parentPath = path.slice(0, -1)
+  const parent = parentPath.length === 0 ? null : nodeAt(layout.value, parentPath)
+  if (parent?.kind === 'split' && parent.orientation === orientation) {
+    const index = path[path.length - 1] ?? 0
+    const children = parent.children.slice()
+    children.splice(index + 1, 0, created)
+    const nextParent: SplitBranch = { ...parent, children }
+    layout.value =
+      parentPath.length === 0 ? nextParent : replaceAt(layout.value, parentPath, nextParent)
+  } else {
+    const branch: SplitBranch = {
+      kind: 'split',
+      id: `split-${nextSplitId++}`,
+      orientation,
+      children: [current, created]
+    }
+    layout.value = replaceAt(layout.value, path, branch)
   }
-  splitDirection.value = direction
-  activePane.value = 1
+  activeSessionId.value = created.sessionId
 }
 
 function selectSession(sessionId: string) {
-  const paneIndex = paneSessionIds.value.indexOf(sessionId)
-  if (paneIndex >= 0) activePane.value = paneIndex
-  else paneSessionIds.value[activePane.value] = sessionId
+  if (findPath(layout.value, sessionId)) {
+    activeSessionId.value = sessionId
+    return
+  }
+  const path = findPath(layout.value, activeSessionId.value) ?? []
+  layout.value = replaceAt(layout.value, path, leaf(sessionId))
+  activeSessionId.value = sessionId
 }
+
+/** 再点已选中的标签会变成 null，会话切换只接受有效 id */
+function onSessionChange(value: string | number | Array<string | number> | null) {
+  if (typeof value === 'string') selectSession(value)
+}
+
+const sessionOptions = computed(() =>
+  sessions.value.map((session) => ({
+    value: session.id,
+    label: h('span', { class: 'h-full inline-flex items-center gap-1' }, [
+      h(Icon, { icon: 'terminal', size: 16 }),
+      session.name,
+      h(
+        'button',
+        {
+          type: 'button',
+          class: 'inline-flex cursor-pointer border-0 bg-transparent p-0 text-inherit',
+          onClick: (event: MouseEvent) => {
+            event.stopPropagation()
+            void closeSession(session.id)
+          }
+        },
+        [h(Icon, { icon: 'x', size: 12 })]
+      )
+    ])
+  }))
+)
 
 function closeBackendSessions(sessionIds: string[]) {
   void Promise.all(
@@ -90,25 +205,30 @@ function closeBackendSessions(sessionIds: string[]) {
   )
 }
 
+function removeSession(node: LayoutNode, sessionId: string): LayoutNode | null {
+  if (node.kind === 'leaf') return node.sessionId === sessionId ? null : node
+  const children = node.children
+    .map((child) => removeSession(child, sessionId))
+    .filter((child): child is LayoutNode => child !== null)
+  if (children.length === 0) return null
+  if (children.length === 1) return children[0]
+  return { ...node, children }
+}
+
 async function closeSession(sessionId: string) {
   await window.api.terminal.close(sessionId).catch(() => undefined)
   const sessionIndex = sessions.value.findIndex((session) => session.id === sessionId)
   if (sessionIndex < 0) return
-
   sessions.value.splice(sessionIndex, 1)
-  hoveredSessionId.value = undefined
-  const paneIndex = paneSessionIds.value.indexOf(sessionId)
-  if (paneIndex >= 0) {
-    if (paneSessionIds.value.length > 1) {
-      paneSessionIds.value.splice(paneIndex, 1)
-      splitDirection.value = 'single'
-      activePane.value = 0
-    } else if (sessions.value[0]) {
-      paneSessionIds.value[0] = sessions.value[0].id
-      activePane.value = 0
-    } else {
-      close()
-    }
+
+  const nextLayout = removeSession(layout.value, sessionId)
+  if (!nextLayout || sessions.value.length === 0) {
+    close()
+    return
+  }
+  layout.value = nextLayout
+  if (!findPath(nextLayout, activeSessionId.value)) {
+    activeSessionId.value = firstSessionId(nextLayout)
   }
 }
 
@@ -126,42 +246,48 @@ function toggle() {
 
 defineExpose<TerminalPanelExpose>({ open, close, toggle, visible })
 
-function paneStyle(index: number) {
-  if (splitDirection.value === 'single') return undefined
-  return { flexGrow: index === 0 ? splitRatio.value : 1 - splitRatio.value }
-}
-
-function onSplitPointerDown(event: PointerEvent) {
-  if (event.button !== 0 || splitDirection.value === 'single') return
-  const handle = event.currentTarget as HTMLElement | null
-  const panes = handle?.parentElement
-  if (!panes) return
-
-  splitResizing.value = true
-  const rect = panes.getBoundingClientRect()
-  const vertical = splitDirection.value === 'vertical'
-  const startPosition = vertical ? event.clientX : event.clientY
-  const totalSize = vertical ? rect.width : rect.height
-  const startRatio = splitRatio.value
-  const onMove = (moveEvent: PointerEvent) => {
-    const position = vertical ? moveEvent.clientX : moveEvent.clientY
-    const nextRatio = startRatio + (position - startPosition) / totalSize
-    splitRatio.value = Math.min(PANE_MAX_RATIO, Math.max(PANE_MIN_RATIO, nextRatio))
+const TerminalLayout = defineComponent({
+  name: 'TerminalLayout',
+  props: {
+    node: { type: Object as PropType<LayoutNode>, required: true }
+  },
+  setup(props) {
+    return () => {
+      const node = props.node
+      if (node.kind === 'leaf') {
+        return h(Terminal, {
+          sessionId: node.sessionId,
+          onFocus: () => {
+            activeSessionId.value = node.sessionId
+          }
+        })
+      }
+      return h(
+        Splitter,
+        { orientation: node.orientation, class: 'h-full min-h-0 min-w-0' },
+        {
+          default: () =>
+            node.children.map((child) =>
+              h(
+                SplitterPanel,
+                {
+                  key: child.kind === 'leaf' ? child.sessionId : child.id,
+                  min: 80,
+                  class: 'min-h-0 min-w-0 overflow-hidden'
+                },
+                { default: () => h(TerminalLayout, { node: child }) }
+              )
+            )
+        }
+      )
+    }
   }
-  const onUp = () => {
-    splitResizing.value = false
-    window.removeEventListener('pointermove', onMove)
-    window.removeEventListener('pointerup', onUp)
-  }
-
-  window.addEventListener('pointermove', onMove)
-  window.addEventListener('pointerup', onUp)
-}
+})
 
 watch(visible, (opened) => {
   if (opened) return
   const sessionIds = [
-    ...new Set([...sessions.value.map((session) => session.id), ...paneSessionIds.value])
+    ...new Set([...sessions.value.map((session) => session.id), ...collectSessionIds(layout.value)])
   ]
   resetPanelState()
   closeBackendSessions(sessionIds)
@@ -177,117 +303,39 @@ onBeforeUnmount(() => {
     <section
       v-if="visible"
       class="relative flex h-full min-h-0 flex-col overflow-hidden bg-(--ant-color-bg-container) text-(--ant-color-text)"
-      aria-label="终端面板"
     >
-      <div class="relative z-10 flex h-8 shrink-0 items-center justify-between gap-2 px-2">
-        <div
-          class="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto"
-          role="tablist"
-          aria-label="终端会话"
-        >
-          <Tag
-            v-for="session in sessions"
-            :key="session.id"
-            :bordered="false"
-            class="terminal-tag inline-flex! cursor-pointer items-center gap-1.5 border-transparent! bg-transparent! text-(--ant-color-text-secondary)! hover:bg-(--ant-color-fill-tertiary)! hover:text-(--ant-color-text)!"
-            :class="
-              session.id === activeSessionId
-                ? 'bg-(--ant-color-primary-bg)! text-(--ant-color-primary)! shadow-[inset_0_0_0_1px_var(--ant-color-primary)]'
-                : ''
-            "
-            role="tab"
-            :aria-selected="session.id === activeSessionId"
-            @mouseenter="hoveredSessionId = session.id"
-            @mouseleave="hoveredSessionId = undefined"
-            @click="selectSession(session.id)"
-          >
-            <template #icon>
-              <span
-                class="inline-flex"
-                :aria-label="hoveredSessionId === session.id ? `关闭${session.name}` : session.name"
-                @click.stop="hoveredSessionId === session.id && closeSession(session.id)"
-              >
-                <Icon :icon="hoveredSessionId === session.id ? 'x' : 'terminal'" :size="16" />
-              </span>
-            </template>
-            {{ session.name }}
-          </Tag>
-        </div>
-        <div class="flex shrink-0 items-center gap-2">
+      <div class="relative z-10 flex shrink-0 items-center justify-between gap-2 px-2 py-2">
+        <CheckableTagGroup
+          :options="sessionOptions"
+          :value="activeSessionId"
+          @change="onSessionChange"
+        />
+        <div class="flex items-center gap-2">
           <Tooltip title="左右分屏">
-            <Button
-              size="small"
-              class="border-transparent! bg-transparent! text-(--ant-color-icon)! hover:bg-(--ant-color-fill-tertiary)! hover:text-(--ant-color-text)!"
-              aria-label="左右分屏"
-              @click="split('vertical')"
-            >
-              <template #icon><Icon icon="columns-2" :size="17" /></template>
+            <Button size="small" @click="split('horizontal')">
+              <template #icon><Icon icon="columns-2" :size="16" /></template>
             </Button>
           </Tooltip>
           <Tooltip title="上下分屏">
-            <Button
-              size="small"
-              class="border-transparent! bg-transparent! text-(--ant-color-icon)! hover:bg-(--ant-color-fill-tertiary)! hover:text-(--ant-color-text)!"
-              aria-label="上下分屏"
-              @click="split('horizontal')"
-            >
-              <template #icon><Icon icon="panel-bottom" :size="17" /></template>
+            <Button size="small" @click="split('vertical')">
+              <template #icon><Icon icon="panel-bottom" :size="16" /></template>
             </Button>
           </Tooltip>
           <Tooltip title="新建终端">
-            <Button
-              size="small"
-              class="border-transparent! bg-transparent! text-(--ant-color-icon)! hover:bg-(--ant-color-fill-tertiary)! hover:text-(--ant-color-text)!"
-              aria-label="新建终端"
-              @click="addTerminal"
-            >
-              <template #icon><Icon icon="plus" :size="18" /></template>
+            <Button size="small" @click="addTerminal">
+              <template #icon><Icon icon="plus" :size="16" /></template>
             </Button>
           </Tooltip>
           <Tooltip title="关闭终端面板">
-            <Button
-              size="small"
-              class="border-transparent! bg-transparent! text-(--ant-color-icon)! hover:bg-(--ant-color-fill-tertiary)! hover:text-(--ant-color-text)!"
-              aria-label="关闭终端面板"
-              @click="close"
-            >
-              <template #icon><Icon icon="x" :size="18" /></template>
+            <Button size="small" @click="close">
+              <template #icon><Icon icon="x" :size="16" /></template>
             </Button>
           </Tooltip>
         </div>
       </div>
 
-      <div
-        class="flex min-h-0 flex-1 overflow-hidden"
-        :class="splitDirection === 'horizontal' ? 'flex-col' : ''"
-      >
-        <template v-for="(sessionId, index) in paneSessionIds" :key="sessionId">
-          <div
-            class="flex min-h-0 min-w-0 flex-1 basis-0 flex-col outline-none"
-            :class="
-              index === activePane
-                ? 'shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--ant-color-primary)_40%,transparent)]'
-                : ''
-            "
-            :style="paneStyle(index)"
-          >
-            <Terminal :key="sessionId" :session-id="sessionId" @focus="activePane = index" />
-          </div>
-          <div
-            v-if="index === 0 && splitDirection !== 'single'"
-            class="relative z-1 shrink-0 grow-0 basis-[7px] touch-none before:absolute before:bg-(--ant-color-border-secondary) before:transition-colors before:duration-150 hover:before:bg-(--ant-color-fill)"
-            :class="[
-              splitDirection === 'vertical'
-                ? 'cursor-col-resize before:top-0 before:bottom-0 before:left-[3px] before:w-px'
-                : 'cursor-row-resize before:right-0 before:bottom-[3px] before:left-0 before:h-px',
-              splitResizing ? 'before:bg-(--ant-color-fill)' : ''
-            ]"
-            role="separator"
-            :aria-label="splitDirection === 'vertical' ? '调整左右终端宽度' : '调整上下终端高度'"
-            :aria-orientation="splitDirection === 'vertical' ? 'vertical' : 'horizontal'"
-            @pointerdown="onSplitPointerDown"
-          />
-        </template>
+      <div class="min-h-0 flex-1 overflow-hidden">
+        <TerminalLayout :node="layout" />
       </div>
     </section>
   </Transition>

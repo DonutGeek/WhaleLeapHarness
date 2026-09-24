@@ -2,9 +2,6 @@
   "name": "@repo/cli",
   "version": "0.1.0",
   "private": true,
-  "bin": {
-    "whale-agent": "./dist/cli.js"
-  },
   "type": "module",
   "exports": {
     ".": {
@@ -13,10 +10,10 @@
     }
   },
   "scripts": {
-    "agent": "tsx src/cli.ts run",
     "build": "tsc -p tsconfig.json",
     "lint": "oxlint .",
-    "check-types": "tsc --noEmit -p tsconfig.json"
+    "check-types": "tsc --noEmit -p tsconfig.json && tsc -p tsconfig.test.json",
+    "test": "node --import tsx --test test/*.test.ts"
   },
   "devDependencies": {
     "@types/node": "^22.19.1",

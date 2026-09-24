@@ -11,6 +11,16 @@ const props = withDefaults(defineProps<{ code: string; language?: string; showCo
 
 const copied = ref(false)
 
+/** 别名对应的注册名，例如 ts → typescript */
+const languageNames = new Map(
+  hljs.listLanguages().map((name) => [hljs.getLanguage(name), name] as const)
+)
+
+const languageLabel = computed(() => {
+  const language = hljs.getLanguage(props.language.toLowerCase())
+  return (language && languageNames.get(language)) || props.language
+})
+
 const highlightedCode = computed(() => {
   const language = props.language.toLowerCase()
   return hljs.getLanguage(language)
@@ -34,15 +44,15 @@ async function copyCode() {
     <header
       class="flex min-h-9 items-center justify-between gap-3 border-b border-solid border-(--ant-color-border-secondary) bg-(--ant-color-fill-secondary) pr-2 pl-3.5"
     >
-      <span class="text-xs leading-none text-(--ant-color-text-secondary)">
-        {{ language }}
+      <span class="leading-none text-(--ant-color-text-secondary)">
+        {{ languageLabel }}
       </span>
       <Tooltip
         v-if="showCopy"
         :title="copied ? '已复制' : '复制'"
         :open="copied ? true : undefined"
       >
-        <Button type="text" size="small" aria-label="复制" @click="copyCode">
+        <Button type="text" size="small" @click="copyCode">
           <template #icon>
             <Icon v-if="copied" icon="check" :size="14" />
             <Icon v-else icon="copy" :size="14" />
@@ -58,7 +68,7 @@ async function copyCode() {
 </template>
 
 <style scoped>
-@reference "../../../design/tailwind.css";
+@reference "../../../../design/tailwind.css";
 
 /* 语法色跟着 Ant Design 语义色走，亮色和暗色不用两套高亮主题 */
 .agent-code :deep(.hljs-keyword),

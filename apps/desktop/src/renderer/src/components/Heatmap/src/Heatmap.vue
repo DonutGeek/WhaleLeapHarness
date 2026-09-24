@@ -184,7 +184,6 @@ function getTooltip(cell: DayCell) {
     class="text-xs text-(--ant-color-text-secondary)"
     :class="{ 'heatmap--fit': fit }"
     :style="cssVars"
-    aria-label="活动热力图"
   >
     <div
       v-if="!matrix.length && !loading"
@@ -195,7 +194,6 @@ function getTooltip(cell: DayCell) {
     <div v-else class="heatmap__content overflow-x-auto">
       <table
         class="heatmap__calendar border-separate [border-spacing:var(--heatmap-x-gap)_var(--heatmap-y-gap)]"
-        aria-label="活动日历"
       >
         <thead v-if="showMonthLabels">
           <tr>
@@ -234,13 +232,11 @@ function getTooltip(cell: DayCell) {
                 :style="{ backgroundColor: getColor(cell) }"
                 type="button"
                 :title="tooltip ? getTooltip(cell) : undefined"
-                :aria-label="getTooltip(cell)"
                 @click="emit('cellClick', cell.item)"
               />
               <span
                 v-else
                 class="box-border block size-(--heatmap-cell-size) rounded-(--ant-border-radius-sm)"
-                aria-hidden="true"
               />
             </td>
           </tr>
@@ -252,7 +248,7 @@ function getTooltip(cell: DayCell) {
       class="mt-2 flex items-center justify-between gap-3"
     >
       <slot name="footer" />
-      <div class="ml-auto inline-flex items-center gap-1 text-xs" aria-label="活动色阶">
+      <div class="ml-auto inline-flex items-center gap-1 text-xs">
         <slot name="indicator-leading-text">少</slot
         ><span
           v-for="(color, index) in [minimumColor, ...activeColors]"

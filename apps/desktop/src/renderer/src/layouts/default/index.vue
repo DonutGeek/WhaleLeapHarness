@@ -41,21 +41,14 @@ function onSiderResizeEnd(sizes: number[]) {
 <template>
   <div class="relative flex h-full min-h-0">
     <!-- 相对窗口定位，侧栏宽度变化时这三个按钮停在原地 -->
-    <div
-      data-window-drag-region
-      class="absolute left-2.5 z-20 flex h-14 items-center gap-2 pl-22 pt-1"
-    >
-      <Button
-        size="small"
-        :aria-label="getSiderHidden ? '展开侧栏' : '收起侧栏'"
-        @click="toggleSiderHidden"
-      >
+    <div class="no-drag absolute top-0 left-2.5 z-30 flex h-12 items-center gap-2 pl-22 pt-1">
+      <Button size="small" @click="toggleSiderHidden">
         <template #icon><Icon icon="panel-left" :size="16" /></template>
       </Button>
-      <Button size="small" aria-label="后退">
+      <Button size="small">
         <template #icon><Icon icon="arrow-left" :size="16" /></template>
       </Button>
-      <Button size="small" aria-label="前进">
+      <Button size="small">
         <template #icon><Icon icon="arrow-right" :size="16" /></template>
       </Button>
     </div>

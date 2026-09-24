@@ -49,19 +49,15 @@ const welcomeHeatmapData = Array.from({ length: 365 }, (_, index) => {
 <template>
   <main class="relative flex h-full min-w-0 flex-col overflow-hidden">
     <!-- 终端和侧边栏属于右侧栏，固定在窗口右上角 -->
-    <div
-      data-window-drag-region
-      class="absolute top-0 right-2.5 z-20 -mt-1 flex h-14 items-center gap-2"
-    >
+    <div class="no-drag absolute top-0 right-2.5 z-30 -mt-1 flex h-12 items-center gap-2">
       <Tooltip v-if="!sidePanelRef?.visible" title="任务清单">
-        <Button size="small" aria-label="任务清单">
+        <Button size="small">
           <template #icon><Icon icon="list-checks" :size="16" /></template>
         </Button>
       </Tooltip>
       <Tooltip title="终端面板">
         <Button
           size="small"
-          :aria-label="terminalRef?.visible ? '关闭终端面板' : '打开终端面板'"
           :type="terminalRef?.visible ? 'primary' : 'default'"
           @click="terminalRef?.toggle()"
         >
@@ -71,7 +67,6 @@ const welcomeHeatmapData = Array.from({ length: 365 }, (_, index) => {
       <Tooltip :title="sidePanelRef?.visible ? '关闭侧边栏' : '打开侧边栏'">
         <Button
           size="small"
-          :aria-label="sidePanelRef?.visible ? '关闭侧边栏' : '打开侧边栏'"
           :type="sidePanelRef?.visible ? 'primary' : 'default'"
           @click="sidePanelRef?.toggle()"
         >
@@ -96,21 +91,24 @@ const welcomeHeatmapData = Array.from({ length: 365 }, (_, index) => {
             <div class="flex h-full min-w-0 flex-col overflow-hidden">
               <header
                 data-window-drag-region
-                class="flex h-14 shrink-0 items-center gap-2 -mt-1 transition-[padding] duration-200 ease-out"
-                :class="[getSiderHidden ? 'pl-48' : 'pl-4', 'pr-4']"
+                class="flex h-12 shrink-0 items-center gap-2 -mt-1 transition-[margin,padding] duration-200 ease-out"
+                :class="[
+                  getSiderHidden ? 'ml-52' : 'ml-4',
+                  sidePanelRef?.visible ? 'pr-4' : 'mr-32'
+                ]"
               >
                 <Icon icon="folder" :size="16" class="shrink-0 text-(--ant-color-text-secondary)" />
                 <h1 class="min-w-0 max-w-120 truncate text-sm font-medium text-(--ant-color-text)">
                   {{ agentTitle }}
                 </h1>
                 <Tooltip title="更多操作">
-                  <Button size="small" aria-label="更多操作">
+                  <Button size="small">
                     <template #icon><Icon icon="ellipsis" :size="16" /></template>
                   </Button>
                 </Tooltip>
                 <span v-if="sidePanelRef?.visible" class="ml-auto inline-flex">
                   <Tooltip title="任务清单">
-                    <Button size="small" aria-label="任务清单">
+                    <Button size="small">
                       <template #icon><Icon icon="list-checks" :size="16" /></template>
                     </Button>
                   </Tooltip>
@@ -177,7 +175,7 @@ const welcomeHeatmapData = Array.from({ length: 365 }, (_, index) => {
 </template>
 
 <style>
-/* 分割条默认高度为 0，热区叠在上下面板上。左侧会被输入框盖住，只剩侧边栏下面那一段能拖 */
+/* 分割条不占高度，避免在输入框和终端之间留出一条缝；热区叠在接缝两侧 */
 .terminal-split.ant-splitter-vertical > .ant-splitter-panel {
   position: relative;
   z-index: 0;
@@ -185,17 +183,18 @@ const welcomeHeatmapData = Array.from({ length: 365 }, (_, index) => {
 
 .terminal-split.ant-splitter-vertical > .ant-splitter-bar {
   z-index: 30;
-  height: 8px !important;
+  height: 0 !important;
+  overflow: visible;
   cursor: row-resize;
   -webkit-app-region: no-drag;
   app-region: no-drag;
 }
 
 .terminal-split.ant-splitter-vertical > .ant-splitter-bar > .ant-splitter-bar-dragger {
-  top: 0 !important;
+  top: -4px !important;
   left: 0 !important;
   width: 100% !important;
-  height: 100% !important;
+  height: 8px !important;
   transform: none !important;
   -webkit-app-region: no-drag;
   app-region: no-drag;

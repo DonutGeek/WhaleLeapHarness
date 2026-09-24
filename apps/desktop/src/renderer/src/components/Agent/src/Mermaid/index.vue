@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Icon } from '@/components/Icon'
 import { Card, Tooltip } from 'antdv-next'
-import CodeHighlighter from './CodeHighlighter.vue'
+import CodeHighlighter from '../CodeHighlighter/index.vue'
 
 defineProps<{ code: string; title?: string }>()
 </script>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { Icon } from '@/components/Icon'
-import type { AgentConversation, AgentConversationGroup } from './types'
+import type { AgentConversation, AgentConversationGroup } from '../types'
 
 const props = withDefaults(
   defineProps<{

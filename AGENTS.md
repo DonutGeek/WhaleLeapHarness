@@ -13,6 +13,7 @@
 - 使用 TypeScript 严格模式；不得使用未验证的 `any` 或忽略类型错误。
 - Electron 主进程与渲染进程只通过 preload 暴露的最小化 IPC 接口通信。
 - 不提交密钥、令牌或真实环境变量；新增环境变量必须同步更新 `.env.example`。
+- 界面不手写 `aria-label`、`aria-labelledby`、`aria-orientation`，也不为读屏另加 `role`。控件含义用可见文案或 Tooltip 表达。图标组件内部的 `aria-hidden` 除外。
 
 ## 质量要求
 

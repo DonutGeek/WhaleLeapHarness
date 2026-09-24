@@ -85,7 +85,7 @@ function backToApp() {
       </template>
     </Input>
 
-    <nav class="-mr-2.5 min-h-0 flex-1 overflow-y-auto pr-2.5" aria-label="设置">
+    <nav class="-mr-2.5 min-h-0 flex-1 overflow-y-auto pr-2.5">
       <section v-for="group in visibleGroups" :key="group.label" class="mb-4">
         <h2 class="mb-1 px-2 text-xs font-medium text-(--ant-color-text-tertiary)">
           {{ group.label }}

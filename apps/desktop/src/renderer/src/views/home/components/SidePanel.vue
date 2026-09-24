@@ -75,10 +75,12 @@ const entries = [
   <aside
     v-show="visible"
     class="flex h-full min-w-0 flex-col bg-(--ant-color-fill-quaternary) px-4"
-    aria-label="侧边栏"
   >
-    <!-- 占住和左上角按钮同一行的高度，按住可拖动窗口 -->
-    <div data-window-drag-region class="h-14 shrink-0" @mousedown="onTitlebarMouseDown" />
+    <!-- 右边留给右上角按钮，拖拽层不能盖住它们 -->
+    <div class="flex h-14 shrink-0">
+      <div data-window-drag-region class="min-w-0 flex-1" @mousedown="onTitlebarMouseDown" />
+      <div class="w-32 shrink-0" />
+    </div>
     <ul class="flex min-h-0 flex-col gap-3 pb-4">
       <li v-for="entry in entries" :key="entry.id">
         <div

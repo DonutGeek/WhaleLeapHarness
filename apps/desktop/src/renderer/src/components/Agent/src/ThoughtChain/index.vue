@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Timeline, TimelineItem } from 'antdv-next'
-import type { AgentThoughtStep } from './types'
+import type { AgentThoughtStep } from '../types'
 
 const props = defineProps<{ steps: AgentThoughtStep[] }>()
 const timelineColor = computed(

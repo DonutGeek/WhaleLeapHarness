@@ -10,7 +10,7 @@ import {
   TimelineItem,
   Typography
 } from 'antdv-next'
-import type { AgentThoughtStep } from './types'
+import type { AgentThoughtStep } from '../types'
 
 defineProps<{ steps: AgentThoughtStep[] }>()
 

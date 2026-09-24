@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Icon } from '@/components/Icon'
 import { Button } from 'antdv-next'
-import type { AgentSource } from './types'
+import type { AgentSource } from '../types'
 
 defineProps<{ sources: AgentSource[] }>()
 const emit = defineEmits<{ open: [source: AgentSource] }>()

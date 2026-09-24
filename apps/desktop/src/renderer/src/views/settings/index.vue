@@ -18,8 +18,8 @@ function openAddModel() {
     <!-- 和会话页同一条顶栏，设置页没有标题，只留出高度和拖拽区域 -->
     <header
       data-window-drag-region
-      class="h-14 shrink-0 transition-[padding] duration-200 ease-out"
-      :class="getSiderHidden ? 'pl-48' : 'pl-4'"
+      class="h-14 shrink-0 transition-[margin] duration-200 ease-out"
+      :class="getSiderHidden ? 'ml-52' : 'ml-4'"
     />
 
     <div class="flex min-h-0 flex-1 flex-col overflow-y-auto px-8 py-6">

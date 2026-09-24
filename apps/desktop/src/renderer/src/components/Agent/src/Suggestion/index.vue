@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Icon } from '@/components/Icon'
 import { Button } from 'antdv-next'
-import type { AgentSuggestion } from './types'
+import type { AgentSuggestion } from '../types'
 
 defineProps<{ suggestions: AgentSuggestion[] }>()
 const emit = defineEmits<{ choose: [suggestion: AgentSuggestion] }>()

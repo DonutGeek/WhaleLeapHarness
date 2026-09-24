@@ -24,13 +24,32 @@ html[data-font-size='large'] {
   app-region: drag;
 }
 
-/* 按钮必须显式退出拖拽，否则点不到 */
+/* 滑块颜色固定。自定义滚动条后，系统不会再在悬停时把滑块变深、变粗 */
+* {
+  scrollbar-color: var(--ant-color-fill-secondary) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-thumb:hover,
+*::-webkit-scrollbar-thumb:active {
+  background-color: var(--ant-color-fill-secondary);
+  border-radius: 999px;
+}
+
+/* 拖拽层会挡住叠在上面的元素，退出拖拽必须打在包裹层上，只写在 button 上无效 */
 .no-drag,
-[data-window-drag-region] button,
-[data-window-drag-region] a,
-[data-window-drag-region] input,
-[data-window-drag-region] textarea,
-[data-window-drag-region] [role='button'] {
+.no-drag *,
+[data-window-drag-region] :is(button, a, input, textarea, [role='button']),
+[data-window-drag-region] :is(button, a, input, textarea, [role='button']) * {
   -webkit-app-region: no-drag;
   app-region: no-drag;
 }

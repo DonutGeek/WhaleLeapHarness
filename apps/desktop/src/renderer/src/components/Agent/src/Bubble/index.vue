@@ -2,8 +2,8 @@
 import { computed, ref } from 'vue'
 import { Button, Tooltip } from 'antdv-next'
 import { Icon } from '@/components/Icon'
-import CodeHighlighter from './CodeHighlighter.vue'
-import type { AgentAttachment, AgentRole } from './types'
+import CodeHighlighter from '../CodeHighlighter/index.vue'
+import type { AgentAttachment, AgentRole } from '../types'
 
 const props = withDefaults(
   defineProps<{
@@ -17,6 +17,12 @@ const props = withDefaults(
 )
 
 const isUser = computed(() => props.role === 'user')
+
+/** 内容区最多占一行的 85%；用户气泡才加 filled 背景和内边距 */
+const bubbleContentClass =
+  'box-border w-max max-w-[85%] text-(length:--ant-font-size) leading-(--ant-line-height) break-words text-(--ant-color-text)'
+const userBubbleClass =
+  'min-h-[calc(var(--ant-padding-sm)*2+var(--ant-line-height)*var(--ant-font-size))] rounded-[calc(var(--ant-border-radius)*2)] bg-(--ant-color-fill-content) px-(--ant-padding) py-(--ant-padding-sm)'
 const copied = ref(false)
 const sentAt = computed(() => {
   if (!props.createdAt) return ''
@@ -79,7 +85,7 @@ async function copyContent() {
   <article class="agent-bubble group flex w-full">
     <div
       class="flex min-w-0 max-w-full flex-col"
-      :class="isUser ? 'ml-auto items-end @xl/conversation:max-w-xl' : 'items-start'"
+      :class="isUser ? 'ml-auto items-end' : 'items-start'"
     >
       <div
         v-if="attachments.length"
@@ -103,18 +109,17 @@ async function copyContent() {
           />
           <span v-else class="flex items-center gap-1.5 text-(--ant-color-text)">
             <Icon icon="file" :size="14" />
-            <span class="line-clamp-2 text-xs leading-4 break-all">{{ item.name }}</span>
+            <span class="line-clamp-2 text-xs leading-4 break-all">
+              {{ item.name }}
+            </span>
           </span>
         </span>
       </div>
 
-      <div
-        v-if="isUser"
-        class="w-max max-w-full rounded-(--ant-border-radius-lg) border border-solid border-(--ant-color-border) bg-(--ant-color-fill-secondary) px-4 py-3 text-sm leading-relaxed break-words whitespace-pre-wrap text-(--ant-color-text)"
-      >
+      <div v-if="isUser" class="whitespace-pre-wrap" :class="[bubbleContentClass, userBubbleClass]">
         {{ content.replace(/[\r\n]+$/u, '') }}
       </div>
-      <div v-else class="w-full text-sm leading-relaxed text-(--ant-color-text)">
+      <div v-else :class="bubbleContentClass">
         <template v-for="(block, index) in blocks" :key="index">
           <p
             v-if="block.type === 'text' && block.text.trim()"
@@ -141,7 +146,7 @@ async function copyContent() {
           {{ sentAt }}
         </time>
         <Tooltip :title="copied ? '已复制' : '复制'" :open="copied ? true : undefined">
-          <Button type="text" size="small" aria-label="复制" @click="copyContent">
+          <Button type="text" size="small" @click="copyContent">
             <template #icon>
               <Icon v-if="copied" icon="check" :size="14" />
               <Icon v-else icon="copy" :size="14" />
@@ -149,7 +154,7 @@ async function copyContent() {
           </Button>
         </Tooltip>
         <Tooltip v-if="!isUser" title="重新尝试">
-          <Button type="text" size="small" aria-label="重新尝试">
+          <Button type="text" size="small">
             <template #icon><Icon icon="rotate-ccw" :size="14" /></template>
           </Button>
         </Tooltip>

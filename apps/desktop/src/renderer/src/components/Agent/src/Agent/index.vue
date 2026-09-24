@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { VirtualList } from '@/components/VirtualList'
-import BackTop from './BackTop.vue'
-import Bubble from './Bubble.vue'
-import BubbleLoading from './BubbleLoading.vue'
-import Sender from './Sender.vue'
-import type { AgentMessage, AgentSource, AgentSuggestion } from './types'
+import BackTop from '../BackTop/index.vue'
+import Bubble from '../Bubble/index.vue'
+import BubbleLoading from '../BubbleLoading/index.vue'
+import Sender from '../Sender/index.vue'
+import type { AgentMessage, AgentSource, AgentSuggestion } from '../types'
 
 const props = withDefaults(
   defineProps<{
@@ -182,8 +182,8 @@ watch(
         </div>
       </template>
       <template #footer>
-        <div class="sticky bottom-0 z-20 mx-auto w-full max-w-3xl shrink-0 px-4">
-          <div class="relative">
+        <div class="sticky bottom-0 z-20 w-full shrink-0">
+          <div class="relative mx-auto w-full max-w-3xl px-4">
             <BackTop v-if="stageItems.length && !stickToBottom" @click="jumpToBottom" />
             <Sender
               :sending="sending"
@@ -194,8 +194,6 @@ watch(
               @resume="emit('resume')"
             />
           </div>
-          <!-- 只挡住输入框下沿到终端之间的缝，避免消息从这里漏出来 -->
-          <div class="h-4 bg-(--ant-color-bg-container)" aria-hidden="true" />
         </div>
       </template>
     </VirtualList>

@@ -80,7 +80,7 @@ onBeforeUnmount(() => {
 <template>
   <div
     ref="terminalHost"
-    class="h-full w-full overflow-hidden [&_.xterm]:h-full [&_.xterm]:px-3 [&_.xterm]:py-2.5"
+    class="h-full w-full overflow-hidden bg-(--ant-color-bg-container) [&_.xterm]:h-full [&_.xterm]:px-3 [&_.xterm]:py-2.5 [&_.xterm-viewport]:!bg-(--ant-color-bg-container)"
     tabindex="0"
     @focusin="emit('focus')"
     @pointerdown="emit('focus')"

@@ -12,7 +12,12 @@ function createWindow(): void {
     minWidth: 960,
     minHeight: 600,
     show: false,
-    frame: false,
+    ...(process.platform === 'darwin'
+      ? {
+          titleBarStyle: 'hiddenInset' as const,
+          trafficLightPosition: { x: 16, y: 18 }
+        }
+      : {}),
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
